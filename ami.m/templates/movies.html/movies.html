@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title|default('Movies') }} - Ami Movies{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="fw-bold mb-2">{{ page_title|default('All Movies') }}</h1>
+                {% if search_query %}
+                <p class="text-muted mb-0">
+                    Showing results for "<strong>{{ search_query }}</strong>"
+                    {% if total %} • {{ total }} movie{{ 's' if total > 1 else '' }}{% endif %}
+                </p>
+                {% elif genre_filter %}
+                <p class="text-muted mb-0">{{ total }} movie{{ 's' if total > 1 else '' }} in {{ genre_filter }}</p>
+                {% elif total %}
+                <p class="text-muted mb-0">{{ total }} movie{{ 's' if total > 1 else '' }} total</p>
+                {% endif %}
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-sliders"></i> Sort & Filter
+                </button>
+                <div class="dropdown-menu dropdown-menu-end">
+                    <h6 class="dropdown-header">Sort By</h6>
+                    <a class="dropdown-item" href="?sort=rating&order=desc">
+                        <i class="bi bi-star-fill text-warning me-2"></i> Highest Rated
+                    </a>
+                    <a class="dropdown-item" href="?sort=year&order=desc">
+                        <i class="bi bi-calendar text-primary me-2"></i> Newest First
+                    </a>
+                    <a class="dropdown-item" href="?sort=title&order=asc">
+                        <i class="bi bi-sort-alpha-down text-success me-2"></i> A to Z
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header">View</h6>
+                    <div class="dropdown-item">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compact-view">
+                            <label class="form-check-label" for="compact-view">
+                                Compact View
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search & Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('movies') }}" class="row g-3">
+                    <!-- Search Input -->
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="q" 
+                                   placeholder="Search movies by title, actor, director..." 
+                                   value="{{ search_query }}">
+                        </div>
+                    </div>
+                    
+                    <!-- Genre Filter -->
+                    <div class="col-md-3">
+                        <select class="form-select" name="genre">
+                            <option value="">All Genres</option>
+                            <option value="Action" {% if genre_filter == 'Action' %}selected{% endif %}>Action</option>
+                            <option value="Drama" {% if genre_filter == 'Drama' %}selected{% endif %}>Drama</option>
+                            <option value="Comedy" {% if genre_filter == 'Comedy' %}selected{% endif %}>Comedy</option>
+                            <option value="Sci-Fi" {% if genre_filter == 'Sci-Fi' %}selected{% endif %}>Sci-Fi</option>
+                            <option value="Thriller" {% if genre_filter == 'Thriller' %}selected{% endif %}>Thriller</option>
+                            <option value="Horror" {% if genre_filter == 'Horror' %}selected{% endif %}>Horror</option>
+                            <option value="Romance" {% if genre_filter == 'Romance' %}selected{% endif %}>Romance</option>
+                            <option value="Animation" {% if genre_filter == 'Animation' %}selected{% endif %}>Animation</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Year Filter -->
+                    <div class="col-md-2">
+                        <select class="form-select" name="year">
+                            <option value="">All Years</option>
+                            <option value="2020s" {% if year_filter == '2020s' %}selected{% endif %}>2020s</option>
+                            <option value="2010s" {% if year_filter == '2010s' %}selected{% endif %}>2010s</option>
+                            <option value="2000s" {% if year_filter == '2000s' %}selected{% endif %}>2000s</option>
+                            <option value="1990s" {% if year_filter == '1990s' %}selected{% endif %}>1990s</option>
+                            <option value="1980s" {% if year_filter == '1980s' %}selected{% endif %}>1980s</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div class="col-md-2">
+                        <select class="form-select" name="rating">
+                            <option value="">Any Rating</option>
+                            <option value="9" {% if rating_filter == '9' %}selected{% endif %}>9+ Stars</option>
+                            <option value="8" {% if rating_filter == '8' %}selected{% endif %}>8+ Stars</option>
+                            <option value="7" {% if rating_filter == '7' %}selected{% endif %}>7+ Stars</option>
+                            <option value="6" {% if rating_filter == '6' %}selected{% endif %}>6+ Stars</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-filter me-2"></i> Apply Filters
+                            </button>
+                            <a href="{{ url_for('movies') }}" class="btn btn-outline-light">
+                                <i class="bi bi-x-circle me-2"></i> Clear All
+                            </a>
+                            <div class="ms-auto">
+                                <span class="text-muted">
+                                    Showing {{ movies|length }} of {{ total }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Genre Quick Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('movies') }}" class="btn btn-sm {% if not genre_filter %}btn-primary{% else %}btn-outline-light{% endif %}">
+                All
+            </a>
+            <a href="{{ url_for('movies', genre='Action') }}" class="btn btn-sm {% if genre_filter == 'Action' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Action
+            </a>
+            <a href="{{ url_for('movies', genre='Drama') }}" class="btn btn-sm {% if genre_filter == 'Drama' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Drama
+            </a>
+            <a href="{{ url_for('movies', genre='Comedy') }}" class="btn btn-sm {% if genre_filter == 'Comedy' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Comedy
+            </a>
+            <a href="{{ url_for('movies', genre='Sci-Fi') }}" class="btn btn-sm {% if genre_filter == 'Sci-Fi' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Sci-Fi
+            </a>
+            <a href="{{ url_for('movies', genre='Thriller') }}" class="btn btn-sm {% if genre_filter == 'Thriller' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Thriller
+            </a>
+            <a href="{{ url_for('movies', genre='Horror') }}" class="btn btn-sm {% if genre_filter == 'Horror' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Horror
+            </a>
+            <a href="{{ url_for('movies', genre='Romance') }}" class="btn btn-sm {% if genre_filter == 'Romance' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Romance
+            </a>
+            <a href="{{ url_for('movies', genre='Animation') }}" class="btn btn-sm {% if genre_filter == 'Animation' %}btn-primary{% else %}btn-outline-light{% endif %}">
+                Animation
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Movies Grid -->
+{% if movies %}
+<div class="row" id="movies-container">
+    {% for movie in movies %}
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="card movie-card h-100">
+            <div class="position-relative">
+                <img src="{{ movie.poster_url }}" class="card-img-top movie-poster" 
+                     alt="{{ movie.title }}" loading="lazy"
+                     onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                <div class="rating-badge">★ {{ movie.rating }}</div>
+                <div class="action-buttons">
+                    <button class="action-btn toggle-preference {% if movie.id in favorites %}active{% endif %}" 
+                            data-movie-id="{{ movie.id }}" 
+                            data-type="favorite"
+                            data-bs-toggle="tooltip" 
+                            data-bs-title="{% if movie.id in favorites %}Remove from{% else %}Add to{% endif %} favorites">
+                        <i class="bi {% if movie.id in favorites %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                    </button>
+                    <button class="action-btn toggle-preference {% if movie.id in watchlist %}active{% endif %}" 
+                            data-movie-id="{{ movie.id }}" 
+                            data-type="watchlist"
+                            data-bs-toggle="tooltip" 
+                            data-bs-title="{% if movie.id in watchlist %}Remove from{% else %}Add to{% endif %} watchlist">
+                        <i class="bi {% if movie.id in watchlist %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-2">{{ movie.title }}</h5>
+                <p class="card-text text-muted small mb-2">
+                    {{ movie.year }} • {{ movie.duration }}
+                </p>
+                <div class="mb-2">
+                    {% for genre in movie.genre.split(', ')[:3] %}
+                    <span class="badge bg-secondary me-1 mb-1">{{ genre }}</span>
+                    {% endfor %}
+                </div>
+                <p class="card-text flex-grow-1 small">{{ movie.plot[:100] }}{% if movie.plot|length > 100 %}...{% endif %}</p>
+                <div class="mt-auto pt-3">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                           class="btn btn-sm btn-outline-light">
+                            <i class="bi bi-info-circle me-1"></i> View Details
+                        </a>
+                        {% if movie.trailer_url %}
+                        <a href="{{ movie.trailer_url }}" target="_blank" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-play-circle me-1"></i> Watch Trailer
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <div class="d-flex justify-content-between align-items-center small">
+                    <span class="text-muted">
+                        <i class="bi bi-star-fill text-warning me-1"></i> {{ movie.rating }}/10
+                    </span>
+                    <span class="text-muted">
+                        <i class="bi bi-eye me-1"></i> {{ movie.views|default('0') }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Movie pagination" class="mt-5">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page-1 }}&q={{ search_query }}&genre={{ genre_filter }}&year={{ year_filter }}&rating={{ rating_filter }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p >= page-2 and p <= page+2 %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&q={{ search_query }}&genre={{ genre_filter }}&year={{ year_filter }}&rating={{ rating_filter }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% elif p == 1 %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ p }}&q={{ search_query }}&genre={{ genre_filter }}&year={{ year_filter }}&rating={{ rating_filter }}">
+                    {{ p }}
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% elif p == total_pages %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ p }}&q={{ search_query }}&genre={{ genre_filter }}&year={{ year_filter }}&rating={{ rating_filter }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page+1 }}&q={{ search_query }}&genre={{ genre_filter }}&year={{ year_filter }}&rating={{ rating_filter }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+    <div class="text-center text-muted mt-2">
+        Page {{ page }} of {{ total_pages }} • {{ total }} total movies
+    </div>
+</nav>
+{% endif %}
+
+{% else %}
+<!-- No Results -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-film display-1 text-muted mb-4"></i>
+                <h3 class="mb-3">No Movies Found</h3>
+                <p class="text-muted mb-4">
+                    {% if search_query %}
+                    No movies found for "{{ search_query }}". Try different search terms.
+                    {% elif genre_filter %}
+                    No movies found in {{ genre_filter }} category.
+                    {% else %}
+                    No movies available at the moment.
+                    {% endif %}
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ url_for('movies') }}" class="btn btn-primary">
+                        <i class="bi bi-house me-2"></i> Browse All Movies
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-light">
+                        <i class="bi bi-arrow-left me-2"></i> Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Loading Indicator -->
+<div id="loading-indicator" class="text-center my-5" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted mt-2">Loading more movies...</p>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .movie-poster {
+        height: 300px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .movie-card:hover .movie-poster {
+        transform: scale(1.05);
+    }
+    
+    .action-buttons {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        display: flex;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .movie-card:hover .action-buttons {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .action-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        background-color: var(--primary-color);
+        transform: scale(1.1);
+    }
+    
+    .action-btn.active {
+        background-color: var(--primary-color);
+    }
+    
+    .action-btn.active.favorite {
+        background-color: #e50914;
+    }
+    
+    .action-btn.active.watchlist {
+        background-color: #ff9800;
+    }
+    
+    .rating-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: rgba(229, 9, 20, 0.9);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9rem;
+        z-index: 10;
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .page-link {
+        color: var(--primary-color);
+    }
+    
+    .page-link:hover {
+        color: white;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Infinite scroll
+    let isLoading = false;
+    let currentPage = {{ page }};
+    const totalPages = {{ total_pages }};
+    
+    window.addEventListener('scroll', function() {
+        if (isLoading || currentPage >= totalPages) return;
+        
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        if (scrollPosition >= documentHeight - 500) {
+            loadMoreMovies();
+        }
+    });
+    
+    async function loadMoreMovies() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        currentPage++;
+        
+        const loadingIndicator = document.getElementById('loading-indicator');
+        loadingIndicator.style.display = 'block';
+        
+        try {
+            const params = new URLSearchParams(window.location.search);
+            params.set('page', currentPage);
+            
+            const response = await fetch(`{{ url_for('movies') }}?${params.toString()}`);
+            const html = await response.text();
+            
+            // Parse the response
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extract new movies
+            const newMoviesContainer = tempDiv.querySelector('#movies-container');
+            if (newMoviesContainer) {
+                document.getElementById('movies-container').innerHTML += newMoviesContainer.innerHTML;
+            }
+            
+            // Update pagination if needed
+            const pagination = tempDiv.querySelector('nav');
+            if (pagination && document.querySelector('nav')) {
+                document.querySelector('nav').outerHTML = pagination.outerHTML;
+            }
+            
+        } catch (error) {
+            console.error('Error loading more movies:', error);
+            currentPage--;
+        } finally {
+            isLoading = false;
+            loadingIndicator.style.display = 'none';
+            
+            // Reinitialize tooltips for new content
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    }
+    
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

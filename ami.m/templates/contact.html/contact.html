@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Contact - Ami Movies{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4 fw-bold mb-3">Get in Touch</h1>
+        <p class="lead text-muted">We'd love to hear from you! Send us a message anytime.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card">
+            <div class="card-body p-5">
+                <h2 class="fw-bold mb-4">Send a Message</h2>
+                
+                <form id="contact-form" onsubmit="return false;">
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-semibold">Your Name</label>
+                        <input type="text" class="form-control form-control-lg" id="name" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">Email Address</label>
+                        <input type="email" class="form-control form-control-lg" id="email" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="subject" class="form-label fw-semibold">Subject</label>
+                        <input type="text" class="form-control form-control-lg" id="subject" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="message" class="form-label fw-semibold">Message</label>
+                        <textarea class="form-control form-control-lg" id="message" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" onclick="submitContact()">
+                            <i class="bi bi-send me-2"></i> Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-body p-5">
+                <h2 class="fw-bold mb-4">Contact Information</h2>
+                
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary rounded-circle p-3">
+                            <i class="bi bi-envelope-fill text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-1">Email</h5>
+                        <p class="text-muted mb-0">support@amimovies.com</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success rounded-circle p-3">
+                            <i class="bi bi-telephone-fill text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-1">Phone</h5>
+                        <p class="text-muted mb-0">+1 (555) 123-4567</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning rounded-circle p-3">
+                            <i class="bi bi-geo-alt-fill text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-1">Address</h5>
+                        <p class="text-muted mb-0">
+                            123 Movie Street<br>
+                            Cinema City, CA 90210<br>
+                            United States
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info rounded-circle p-3">
+                            <i class="bi bi-clock-fill text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="mb-1">Working Hours</h5>
+                        <p class="text-muted mb-0">
+                            Monday - Friday: 9:00 AM - 6:00 PM<br>
+                            Saturday: 10:00 AM - 4:00 PM<br>
+                            Sunday: Closed
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Map -->
+        <div class="card">
+            <div class="card-body p-0">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3305.083022912865!2d-118.243684984784!3d34.052234380608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c75ddc27da13%3A0xe22fdf6f254608f4!2sLos%20Angeles%2C%20CA%2C%20USA!5e0!3m2!1sen!2s!4v1633023222443!5m2!1sen!2s" 
+                        width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Social Links -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center p-5">
+                <h3 class="mb-4">Follow Us on Social Media</h3>
+                <div class="social-icons d-flex justify-content-center gap-3">
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-light btn-lg rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="bi bi-github"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function submitContact() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        
+        if (!name || !email || !subject || !message) {
+            showNotification('Please fill in all fields', 'warning');
+            return;
+        }
+        
+        // In production, send to server
+        showNotification('Thank you for your message! We\'ll get back to you soon.', 'success');
+        document.getElementById('contact-form').reset();
+    }
+</script>
+{% endblock %}

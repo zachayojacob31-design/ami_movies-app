@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Ami Movies{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <i class="bi bi-person-plus display-4 text-primary"></i>
+                    </div>
+                    <h1 class="h2 fw-bold">Join Ami Movies</h1>
+                    <p class="text-muted">Create your account to start your movie journey</p>
+                </div>
+                
+                <!-- Registration Form -->
+                <form method="POST" action="{{ url_for('register') }}" id="register-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Full Name -->
+                    <div class="mb-4">
+                        <label for="full_name" class="form-label fw-semibold">
+                            <i class="bi bi-person me-2"></i> Full Name
+                        </label>
+                        {{ form.full_name(class="form-control form-control-lg", 
+                                         placeholder="Enter your full name", 
+                                         id="full_name") }}
+                        {% if form.full_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.full_name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">
+                            <i class="bi bi-envelope me-2"></i> Email Address
+                        </label>
+                        {{ form.email(class="form-control form-control-lg", 
+                                     placeholder="Enter your email", 
+                                     id="email") }}
+                        <div class="form-text">
+                            We'll never share your email with anyone else.
+                        </div>
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">
+                            <i class="bi bi-key me-2"></i> Password
+                        </label>
+                        {{ form.password(class="form-control form-control-lg", 
+                                        placeholder="Create a strong password", 
+                                        id="password") }}
+                        <div class="form-text">
+                            Must be at least 8 characters with uppercase, lowercase, number, and special character.
+                        </div>
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Password Strength Meter -->
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div id="password-strength" class="progress-bar" 
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="password-strength-text" class="text-muted"></small>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label fw-semibold">
+                            <i class="bi bi-key-fill me-2"></i> Confirm Password
+                        </label>
+                        {{ form.confirm_password(class="form-control form-control-lg", 
+                                               placeholder="Confirm your password", 
+                                               id="confirm_password") }}
+                        {% if form.confirm_password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.confirm_password.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Password Match Indicator -->
+                        <div class="mt-2">
+                            <small id="password-match" class="text-muted"></small>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms Agreement -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the 
+                                <a href="{{ url_for('privacy') }}" class="text-decoration-none">Terms of Service</a>
+                                and 
+                                <a href="{{ url_for('privacy') }}" class="text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-person-plus me-2"></i> Create Account
+                        </button>
+                    </div>
+                    
+                    <!-- Divider -->
+                    <div class="position-relative my-4">
+                        <hr>
+                        <div class="position-absolute top-50 start-50 translate-middle bg-dark px-3">
+                            <span class="text-muted">Already have an account?</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Login Link -->
+                    <div class="text-center">
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In Instead
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Benefits -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-dark border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-center mb-4">Why Join Ami Movies?</h5>
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-3">
+                                <i class="bi bi-film display-6 text-primary mb-2 d-block"></i>
+                                <h6>Unlimited Access</h6>
+                                <p class="small text-muted mb-0">Browse thousands of movies</p>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <i class="bi bi-bookmark display-6 text-success mb-2 d-block"></i>
+                                <h6>Save Watchlist</h6>
+                                <p class="small text-muted mb-0">Never forget what to watch</p>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <i class="bi bi-star display-6 text-warning mb-2 d-block"></i>
+                                <h6>Rate Movies</h6>
+                                <p class="small text-muted mb-0">Share your opinions</p>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <i class="bi bi-people display-6 text-info mb-2 d-block"></i>
+                                <h6>Join Community</h6>
+                                <p class="small text-muted mb-0">Connect with movie lovers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('register-form');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm_password');
+        const strengthBar = document.getElementById('password-strength');
+        const strengthText = document.getElementById('password-strength-text');
+        const matchText = document.getElementById('password-match');
+        
+        // Password strength checker
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+            
+            // Update progress bar
+            strengthBar.style.width = strength.score * 25 + '%';
+            
+            // Update colors and text
+            if (strength.score === 0) {
+                strengthBar.className = 'progress-bar';
+                strengthText.textContent = '';
+            } else if (strength.score === 1) {
+                strengthBar.className = 'progress-bar bg-danger';
+                strengthText.textContent = 'Very Weak';
+                strengthText.className = 'text-danger';
+            } else if (strength.score === 2) {
+                strengthBar.className = 'progress-bar bg-warning';
+                strengthText.textContent = 'Weak';
+                strengthText.className = 'text-warning';
+            } else if (strength.score === 3) {
+                strengthBar.className = 'progress-bar bg-info';
+                strengthText.textContent = 'Good';
+                strengthText.className = 'text-info';
+            } else if (strength.score === 4) {
+                strengthBar.className = 'progress-bar bg-success';
+                strengthText.textContent = 'Strong';
+                strengthText.className = 'text-success';
+            }
+            
+            // Check password match
+            checkPasswordMatch();
+        });
+        
+        // Confirm password checker
+        confirmInput.addEventListener('input', checkPasswordMatch);
+        
+        function checkPasswordStrength(password) {
+            let score = 0;
+            const feedback = [];
+            
+            // Check length
+            if (password.length >= 8) score++;
+            else feedback.push('At least 8 characters');
+            
+            // Check for lowercase
+            if (/[a-z]/.test(password)) score++;
+            else feedback.push('Lowercase letters');
+            
+            // Check for uppercase
+            if (/[A-Z]/.test(password)) score++;
+            else feedback.push('Uppercase letters');
+            
+            // Check for numbers
+            if (/\d/.test(password)) score++;
+            else feedback.push('Numbers');
+            
+            // Check for special characters
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+            else feedback.push('Special characters');
+            
+            return { score, feedback };
+        }
+        
+        function checkPasswordMatch() {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+            
+            if (!confirm) {
+                matchText.textContent = '';
+                confirmInput.classList.remove('is-valid', 'is-invalid');
+                return;
+            }
+            
+            if (password === confirm) {
+                matchText.textContent = 'Passwords match';
+                matchText.className = 'text-success';
+                confirmInput.classList.remove('is-invalid');
+                confirmInput.classList.add('is-valid');
+            } else {
+                matchText.textContent = 'Passwords do not match';
+                matchText.className = 'text-danger';
+                confirmInput.classList.remove('is-valid');
+                confirmInput.classList.add('is-invalid');
+            }
+        }
+        
+        // Form validation
+        form.addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+            const terms = document.getElementById('terms').checked;
+            
+            // Check password strength
+            const strength = checkPasswordStrength(password);
+            if (strength.score < 4) {
+                e.preventDefault();
+                showNotification('Please use a stronger password', 'warning');
+                return;
+            }
+            
+            // Check password match
+            if (password !== confirm) {
+                e.preventDefault();
+                showNotification('Passwords do not match', 'warning');
+                return;
+            }
+            
+            // Check terms agreement
+            if (!terms) {
+                e.preventDefault();
+                showNotification('Please agree to the terms and conditions', 'warning');
+                return;
+            }
+        });
+        
+        // Focus on first field
+        document.getElementById('full_name').focus();
+    });
+</script>
+{% endblock %}

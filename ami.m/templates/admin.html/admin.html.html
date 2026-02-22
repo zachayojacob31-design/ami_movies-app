@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Ami Movies{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-shield-fill text-warning me-2"></i> Admin Panel
+                </h1>
+                <p class="text-muted">Manage users, view statistics, and monitor activity</p>
+            </div>
+            <div>
+                <span class="badge bg-warning text-dark px-4 py-3">
+                    <i class="bi bi-person-circle me-2"></i> Logged in as {{ session.user_name }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-5">
+    <div class="col-md-3 mb-4">
+        <div class="stats-card bg-gradient">
+            <div class="stats-number">{{ stats.total_users }}</div>
+            <div class="stats-label">Total Users</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+            <div class="stats-number">{{ stats.active_users }}</div>
+            <div class="stats-label">Active Users</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8, #0dcaf0);">
+            <div class="stats-number">{{ stats.admin_users }}</div>
+            <div class="stats-label">Admins</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+            <div class="stats-number">{{ stats.total_movies }}</div>
+            <div class="stats-label">Movies</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #dc3545, #b02a37);">
+            <div class="stats-number">{{ stats.total_favorites }}</div>
+            <div class="stats-label">Favorites</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #6f42c1, #8a6de9);">
+            <div class="stats-number">{{ stats.total_watchlist }}</div>
+            <div class="stats-label">Watchlist</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #fd7e14, #ffc107);">
+            <div class="stats-number">{{ stats.total_ratings }}</div>
+            <div class="stats-label">Ratings</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stats-card" style="background: linear-gradient(135deg, #20c997, #17a2b8);">
+            <div class="stats-number">{{ stats.total_reviews }}</div>
+            <div class="stats-label">Reviews</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="users-tab" data-bs-toggle="tab" 
+                data-bs-target="#users" type="button" role="tab">
+            <i class="bi bi-people me-2"></i> Users
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="activity-tab" data-bs-toggle="tab" 
+                data-bs-target="#activity" type="button" role="tab">
+            <i class="bi bi-activity me-2"></i> User Activity
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="movies-tab" data-bs-toggle="tab" 
+                data-bs-target="#movies" type="button" role="tab">
+            <i class="bi bi-film me-2"></i> Movies
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="adminTabContent">
+    <!-- Users Tab -->
+    <div class="tab-pane fade show active" id="users" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Admin</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.full_name or 'N/A' }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-warning text-dark">Admin</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Blocked</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at[:10] if user.created_at else 'N/A' }}</td>
+                                <td>{{ user.last_login[:16] if user.last_login else 'Never' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('toggle_user', user_id=user.id) }}" 
+                                           class="btn btn-outline-warning" 
+                                           data-bs-toggle="tooltip"
+                                           data-bs-title="Toggle Status">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </a>
+                                        {% if not user.is_admin and user.id != session.user_id %}
+                                        <a href="{{ url_for('delete_user', user_id=user.id) }}" 
+                                           class="btn btn-outline-danger"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-title="Delete User"
+                                           onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Tab -->
+    <div class="tab-pane fade" id="activity" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent User Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Favorites</th>
+                                <th>Watchlist</th>
+                                <th>Ratings</th>
+                                <th>Last Login</th>
+                                <th>Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in user_activity %}
+                            <tr>
+                                <td>{{ user.full_name or 'N/A' }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.favorites }}</td>
+                                <td>{{ user.watchlist }}</td>
+                                <td>{{ user.ratings }}</td>
+                                <td>{{ user.last_login[:16] if user.last_login else 'Never' }}</td>
+                                <td>{{ user.last_active[:16] if user.last_active else 'Never' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Movies Tab -->
+    <div class="tab-pane fade" id="movies" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Movie Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-body">
+                                <h6>Top Rated Movies</h6>
+                                <div id="top-rated-chart" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-body">
+                                <h6>Genre Distribution</h6>
+                                <div id="genre-chart" style="height: 300px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <a href="{{ url_for('movies') }}" class="btn btn-outline-light">
+                        <i class="bi bi-film me-2"></i> Manage Movies
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-dark">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Quick Actions</h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#" class="btn btn-outline-primary" onclick="showNotification('Feature coming soon!', 'info')">
+                        <i class="bi bi-plus-circle me-2"></i> Add Movie
+                    </a>
+                    <a href="#" class="btn btn-outline-success" onclick="showNotification('Feature coming soon!', 'info')">
+                        <i class="bi bi-envelope me-2"></i> Send Newsletter
+                    </a>
+                    <a href="#" class="btn btn-outline-warning" onclick="exportData()">
+                        <i class="bi bi-download me-2"></i> Export Data
+                    </a>
+                    <a href="#" class="btn btn-outline-info" onclick="showNotification('Feature coming soon!', 'info')">
+                        <i class="bi bi-gear me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js for admin charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Sample charts - in production, load real data from API
+        const topRatedCtx = document.getElementById('top-rated-chart')?.getContext('2d');
+        if (topRatedCtx) {
+            new Chart(topRatedCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['The Shawshank Redemption', 'The Godfather', 'The Dark Knight', 'Pulp Fiction', 'Inception'],
+                    datasets: [{
+                        label: 'Rating',
+                        data: [9.3, 9.2, 9.0, 8.9, 8.8],
+                        backgroundColor: '#e50914'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            grid: { color: '#333' },
+                            ticks: { color: '#aaa' }
+                        },
+                        x: {
+                            ticks: { color: '#aaa' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+        
+        const genreCtx = document.getElementById('genre-chart')?.getContext('2d');
+        if (genreCtx) {
+            new Chart(genreCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Drama', 'Action', 'Comedy', 'Sci-Fi', 'Crime', 'Other'],
+                    datasets: [{
+                        data: [30, 25, 15, 12, 10, 8],
+                        backgroundColor: ['#e50914', '#ff6b6b', '#ffd93d', '#6b8cff', '#6c757d', '#28a745']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#aaa' }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Export data
+    function exportData() {
+        // Placeholder for CSV export
+        showNotification('Preparing data export...', 'info');
+        setTimeout(() => {
+            showNotification('Export complete!', 'success');
+        }, 2000);
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .admin-table {
+        color: #fff;
+    }
+    
+    .admin-table th {
+        background-color: rgba(229, 9, 20, 0.2);
+        border-bottom: 2px solid #e50914;
+    }
+    
+    .admin-table td {
+        vertical-align: middle;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #aaa;
+        border: none;
+        padding: 1rem 1.5rem;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #e50914;
+        background-color: transparent;
+        border-bottom: 3px solid #e50914;
+    }
+</style>
+{% endblock %}

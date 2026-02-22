@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Ami Movies{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <i class="bi bi-camera-reels display-4 text-danger"></i>
+                    </div>
+                    <h1 class="h2 fw-bold">Welcome Back</h1>
+                    <p class="text-muted">Sign in to continue to your movie collection</p>
+                </div>
+                
+                <!-- Login Form -->
+                <form method="POST" action="{{ url_for('login') }}" id="login-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">
+                            <i class="bi bi-envelope me-2"></i> Email Address
+                        </label>
+                        {{ form.email(class="form-control form-control-lg", 
+                                     placeholder="Enter your email", 
+                                     id="email") }}
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="password" class="form-label fw-semibold">
+                                <i class="bi bi-key me-2"></i> Password
+                            </label>
+                            <a href="{{ url_for('forgot_password') }}" class="text-decoration-none small">
+                                Forgot Password?
+                            </a>
+                        </div>
+                        {{ form.password(class="form-control form-control-lg", 
+                                        placeholder="Enter your password", 
+                                        id="password") }}
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Remember Me -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.remember(class="form-check-input", id="remember") }}
+                            <label class="form-check-label" for="remember">
+                                Remember me
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                        </button>
+                    </div>
+                    
+                    <!-- Divider -->
+                    <div class="position-relative my-4">
+                        <hr>
+                        <div class="position-absolute top-50 start-50 translate-middle bg-dark px-3">
+                            <span class="text-muted">or</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Demo Account Info -->
+                    <div class="alert alert-info">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-info-circle"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                <h6 class="alert-heading mb-1">Demo Account</h6>
+                                <p class="mb-0 small">
+                                    Use <strong>admin@amimovies.com</strong> / <strong>Admin123!</strong>
+                                    to test the admin features.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Register Link -->
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-0">
+                        Don't have an account?
+                        <a href="{{ url_for('register') }}" class="text-decoration-none fw-semibold">
+                            Create one now
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features -->
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-0 text-center h-100">
+                    <div class="card-body p-3">
+                        <i class="bi bi-film display-6 text-primary mb-2"></i>
+                        <h6 class="mb-0">Unlimited Movies</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-0 text-center h-100">
+                    <div class="card-body p-3">
+                        <i class="bi bi-star display-6 text-warning mb-2"></i>
+                        <h6 class="mb-0">Rate & Review</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-0 text-center h-100">
+                    <div class="card-body p-3">
+                        <i class="bi bi-bookmark display-6 text-success mb-2"></i>
+                        <h6 class="mb-0">Save Watchlist</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        
+        // Focus on email field
+        if (emailInput.value === '') {
+            emailInput.focus();
+        }
+        
+        // Add validation on blur
+        emailInput.addEventListener('blur', function() {
+            validateEmail(this);
+        });
+        
+        passwordInput.addEventListener('blur', function() {
+            validatePassword(this);
+        });
+        
+        function validateEmail(input) {
+            const email = input.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!email) {
+                showError(input, 'Email is required');
+                return false;
+            }
+            
+            if (!emailRegex.test(email)) {
+                showError(input, 'Please enter a valid email address');
+                return false;
+            }
+            
+            clearError(input);
+            return true;
+        }
+        
+        function validatePassword(input) {
+            const password = input.value;
+            
+            if (!password) {
+                showError(input, 'Password is required');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                showError(input, 'Password must be at least 6 characters');
+                return false;
+            }
+            
+            clearError(input);
+            return true;
+        }
+        
+        function showError(input, message) {
+            input.classList.add('is-invalid');
+            let feedback = input.nextElementSibling;
+            
+            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                input.parentNode.appendChild(feedback);
+            }
+            
+            feedback.textContent = message;
+            feedback.style.display = 'block';
+        }
+        
+        function clearError(input) {
+            input.classList.remove('is-invalid');
+            const feedback = input.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.style.display = 'none';
+            }
+        }
+        
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            const isEmailValid = validateEmail(emailInput);
+            const isPasswordValid = validatePassword(passwordInput);
+            
+            if (!isEmailValid || !isPasswordValid) {
+                e.preventDefault();
+                
+                // Show error notification
+                showNotification('Please fix the errors in the form', 'danger');
+            }
+        });
+        
+        // Demo account auto-fill
+        const demoBtn = document.getElementById('demo-btn');
+        if (demoBtn) {
+            demoBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                emailInput.value = 'admin@amimovies.com';
+                passwordInput.value = 'Admin123!';
+                
+                // Trigger validation
+                validateEmail(emailInput);
+                validatePassword(passwordInput);
+                
+                // Show success message
+                showNotification('Demo credentials filled. Click Sign In to continue.', 'success');
+            });
+        }
+    });
+</script>
+{% endblock %}

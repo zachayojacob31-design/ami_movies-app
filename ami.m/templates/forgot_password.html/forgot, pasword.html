@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Forgot Password - Ami Movies{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="mb-4">
+                        <i class="bi bi-key display-4 text-warning"></i>
+                    </div>
+                    <h1 class="h2 fw-bold">Forgot Password?</h1>
+                    <p class="text-muted">
+                        No worries! Enter your email and we'll send you a reset code.
+                    </p>
+                </div>
+                
+                <!-- Forgot Password Form -->
+                <form method="POST" action="{{ url_for('forgot_password') }}" id="forgot-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">
+                            <i class="bi bi-envelope me-2"></i> Email Address
+                        </label>
+                        {{ form.email(class="form-control form-control-lg", 
+                                     placeholder="Enter your email", 
+                                     id="email") }}
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-send me-2"></i> Send Reset Code
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Back to Login -->
+                <div class="text-center">
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Text -->
+        <div class="card mt-4 bg-dark border-0">
+            <div class="card-body">
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-info-circle text-info fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-2">How it works:</h6>
+                        <ol class="text-muted small mb-0">
+                            <li>Enter your registered email address</li>
+                            <li>We'll send you a 6-digit verification code</li>
+                            <li>Enter the code on the next page</li>
+                            <li>Create a new password</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Demo Mode Notice -->
+        {% if not config['EMAIL_CONFIG'].IS_CONFIGURED %}
+        <div class="alert alert-warning mt-4">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Demo Mode:</strong> Email is not configured. 
+            The verification code will be shown on the next page.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('forgot-form');
+        const emailInput = document.getElementById('email');
+        
+        // Focus on email field
+        emailInput.focus();
+        
+        // Form validation
+        form.addEventListener('submit', function(e) {
+            const email = emailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!email) {
+                e.preventDefault();
+                showError(emailInput, 'Email is required');
+            } else if (!emailRegex.test(email)) {
+                e.preventDefault();
+                showError(emailInput, 'Please enter a valid email address');
+            }
+        });
+        
+        function showError(input, message) {
+            input.classList.add('is-invalid');
+            let feedback = input.nextElementSibling;
+            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                input.parentNode.appendChild(feedback);
+            }
+            feedback.textContent = message;
+            feedback.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

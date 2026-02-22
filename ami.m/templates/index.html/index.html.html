@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Ami Movies{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section rounded-3 mb-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="hero-title display-3 fw-bold mb-3">
+                    Your Personal Movie Universe
+                </h1>
+                <p class="hero-subtitle lead mb-4">
+                    Discover, rate, and organize your favorite movies. 
+                    Create watchlists, share reviews, and never forget what to watch next.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if session.user_id %}
+                    <a href="{{ url_for('movies') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-film me-2"></i> Browse Movies
+                    </a>
+                    <a href="{{ url_for('watchlist') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-bookmark me-2"></i> My Watchlist
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i> Join Free
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="hero-stats bg-dark bg-opacity-50 p-4 rounded-3">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="stats-number">{{ total_movies|default('50+') }}</div>
+                            <div class="stats-label">Movies</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stats-number">9.0+</div>
+                            <div class="stats-label">Avg Rating</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-number">24/7</div>
+                            <div class="stats-label">Access</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-number">100%</div>
+                            <div class="stats-label">Free</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- User Stats (if logged in) -->
+{% if session.user_id and user_stats %}
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card bg-dark border-0">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="bi bi-person-circle me-2"></i> Your Movie Journey
+                </h3>
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ user_stats.favorites }}</div>
+                            <div class="stats-label">Favorites</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ user_stats.watchlist }}</div>
+                            <div class="stats-label">Watchlist</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ user_stats.reviews }}</div>
+                            <div class="stats-label">Reviews</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number">{{ user_stats.watched|default('0') }}</div>
+                            <div class="stats-label">Watched</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Featured Movies -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-fire text-danger me-2"></i> Featured Movies
+        </h2>
+        <a href="{{ url_for('movies') }}" class="btn btn-outline-light">
+            View All <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="row" id="movies-container">
+        {% for movie in featured %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="card movie-card h-100">
+                <div class="position-relative">
+                    <img src="{{ movie.poster_url }}" class="card-img-top movie-poster" 
+                         alt="{{ movie.title }}" loading="lazy">
+                    <div class="rating-badge">★ {{ movie.rating }}</div>
+                    <div class="action-buttons">
+                        <button class="action-btn toggle-preference" 
+                                data-movie-id="{{ movie.id }}" 
+                                data-type="favorite"
+                                data-bs-toggle="tooltip" 
+                                data-bs-title="Add to favorites">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <button class="action-btn toggle-preference" 
+                                data-movie-id="{{ movie.id }}" 
+                                data-type="watchlist"
+                                data-bs-toggle="tooltip" 
+                                data-bs-title="Add to watchlist">
+                            <i class="bi bi-bookmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ movie.title }}</h5>
+                    <p class="card-text text-muted small mb-2">
+                        {{ movie.year }} • {{ movie.duration }}
+                    </p>
+                    <div class="mb-3">
+                        {% for genre in movie.genre.split(', ')[:2] %}
+                        <span class="badge bg-secondary me-1">{{ genre }}</span>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text small text-truncate">{{ movie.plot[:100] }}...</p>
+                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                       class="btn btn-sm btn-outline-light w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Newest Movies -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-clock-history text-primary me-2"></i> Recently Added
+        </h2>
+        <a href="{{ url_for('movies') }}?year=2020s" class="btn btn-outline-light">
+            New Releases <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="row">
+        {% for movie in newest %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="card movie-card h-100">
+                <div class="position-relative">
+                    <img src="{{ movie.poster_url }}" class="card-img-top movie-poster" 
+                         alt="{{ movie.title }}" loading="lazy">
+                    <div class="rating-badge">★ {{ movie.rating }}</div>
+                    <div class="new-badge bg-success">NEW</div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ movie.title }}</h5>
+                    <p class="card-text text-muted small mb-2">
+                        {{ movie.year }} • {{ movie.duration }}
+                    </p>
+                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                       class="btn btn-sm btn-outline-light w-100">
+                        Watch Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Top Rated Movies -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-star-fill text-warning me-2"></i> Top Rated
+        </h2>
+        <a href="{{ url_for('movies') }}?rating=9" class="btn btn-outline-light">
+            Highest Rated <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="row">
+        {% for movie in top_rated %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="card movie-card h-100">
+                <div class="position-relative">
+                    <img src="{{ movie.poster_url }}" class="card-img-top movie-poster" 
+                         alt="{{ movie.title }}" loading="lazy">
+                    <div class="rating-badge bg-warning text-dark">★ {{ movie.rating }}</div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ movie.title }}</h5>
+                    <p class="card-text text-muted small mb-2">
+                        {{ movie.year }} • {{ movie.duration }}
+                    </p>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rating-stars me-2">
+                            {% for i in range(5) %}
+                            {% if i < movie.rating//2 %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                            <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">{{ movie.rating }}/10</small>
+                    </div>
+                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                       class="btn btn-sm btn-outline-light w-100">
+                        Read Reviews
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="mb-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Why Choose Ami Movies?</h2>
+            <p class="lead text-muted">Everything you need for your movie journey</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center border-0 bg-transparent">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-collection-play display-4 text-primary"></i>
+                    </div>
+                    <h4 class="card-title">Organized Library</h4>
+                    <p class="card-text text-muted">
+                        Create custom collections, tag movies, and keep everything organized.
+                        Never lose track of movies you want to watch.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center border-0 bg-transparent">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-star display-4 text-warning"></i>
+                    </div>
+                    <h4 class="card-title">Rate & Review</h4>
+                    <p class="card-text text-muted">
+                        Rate movies on a 10-point scale and write detailed reviews.
+                        See what others think and share your opinions.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center border-0 bg-transparent">
+                <div class="card-body">
+                    <div class="feature-icon mb-3">
+                        <i class="bi bi-people display-4 text-success"></i>
+                    </div>
+                    <h4 class="card-title">Social Features</h4>
+                    <p class="card-text text-muted">
+                        Follow friends, see their ratings, and get personalized recommendations
+                        based on your taste and watching habits.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="mb-5">
+    <div class="card bg-gradient border-0">
+        <div class="card-body text-center p-5">
+            <h2 class="display-6 fw-bold mb-3">Ready to Start Your Movie Journey?</h2>
+            <p class="lead mb-4">
+                Join thousands of movie lovers who use Ami Movies to organize their watchlists.
+            </p>
+            {% if session.user_id %}
+            <a href="{{ url_for('movies') }}" class="btn btn-light btn-lg px-5">
+                <i class="bi bi-film me-2"></i> Browse Movies
+            </a>
+            {% else %}
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-person-plus me-2"></i> Sign Up Free
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-5">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+                    url('https://images.unsplash.com/photo-1489599809516-9827b6d1cf13?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 100px 0;
+    }
+    
+    .hero-title {
+        background: linear-gradient(45deg, #e50914, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-stats {
+        backdrop-filter: blur(10px);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .new-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        z-index: 10;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(229, 9, 20, 0.2);
+    }
+</style>
+{% endblock %}

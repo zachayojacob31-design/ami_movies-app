@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ session.user_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Left Column: Profile Info -->
+    <div class="col-lg-4 mb-5 mb-lg-0">
+        <!-- Profile Card -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <!-- Avatar -->
+                <div class="mb-4">
+                    {% if user.avatar_url %}
+                    <img src="{{ user.avatar_url }}" 
+                         class="rounded-circle border border-4 border-primary" 
+                         width="150" height="150" 
+                         alt="{{ user.full_name }}">
+                    {% else %}
+                    <div class="rounded-circle border border-4 border-primary d-flex align-items-center justify-content-center mx-auto" 
+                         style="width: 150px; height: 150px; background: linear-gradient(135deg, #e50914, #ff6b6b);">
+                        <span class="display-4 text-white">
+                            {{ user.full_name[0]|upper if user.full_name else user.email[0]|upper }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- User Info -->
+                <h3 class="card-title mb-1">{{ user.full_name or user.email }}</h3>
+                <p class="text-muted mb-3">{{ user.email }}</p>
+                
+                <!-- User Type Badge -->
+                <div class="mb-4">
+                    {% if user.is_admin %}
+                    <span class="badge bg-warning px-3 py-2">
+                        <i class="bi bi-shield-fill me-1"></i> Administrator
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary px-3 py-2">
+                        <i class="bi bi-person-fill me-1"></i> Regular User
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <div class="stats-number">{{ stats.favorites_count }}</div>
+                        <div class="stats-label">Favorites</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stats-number">{{ stats.watchlist_count }}</div>
+                        <div class="stats-label">Watchlist</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stats-number">{{ stats.reviews_count }}</div>
+                        <div class="stats-label">Reviews</div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-key me-2"></i> Change Password
+                    </a>
+                    <a href="{{ url_for('favorites') }}" class="btn btn-outline-danger">
+                        <i class="bi bi-heart me-2"></i> My Favorites
+                    </a>
+                    <a href="{{ url_for('watchlist') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-bookmark me-2"></i> My Watchlist
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Info -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-info-circle me-2"></i> Account Information
+                </h5>
+                <div class="mb-3">
+                    <label class="small text-muted mb-1">Member Since</label>
+                    <p class="mb-0">{{ user.created_at[:10] }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="small text-muted mb-1">Last Login</label>
+                    <p class="mb-0">
+                        {% if user.last_login %}
+                        {{ user.last_login[:19] }}
+                        {% else %}
+                        Never
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <label class="small text-muted mb-1">Last Active</label>
+                    <p class="mb-0">
+                        {% if user.last_active %}
+                        {{ user.last_active[:19] }}
+                        {% else %}
+                        Not available
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="small text-muted mb-1">Account Status</label>
+                    <p class="mb-0">
+                        <span class="badge bg-success">Active</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Profile Form & Activity -->
+    <div class="col-lg-8">
+        <!-- Edit Profile Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-pencil-square me-2"></i> Edit Profile
+                </h5>
+                
+                <form method="POST" action="{{ url_for('update_profile') }}" id="profile-form">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        {{ form.full_name(class="form-control", id="full_name") }}
+                        {% if form.full_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.full_name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        {{ form.email(class="form-control", id="email") }}
+                        <div class="form-text">
+                            You'll need to verify your email if you change it.
+                        </div>
+                        {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Bio -->
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        {{ form.bio(class="form-control", id="bio", rows="4") }}
+                        <div class="form-text">
+                            Tell us about yourself and your movie preferences.
+                        </div>
+                        {% if form.bio.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.bio.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i> Save Changes
+                        </button>
+                        <button type="reset" class="btn btn-outline-light">
+                            <i class="bi bi-x-circle me-2"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-clock-history me-2"></i> Recent Activity
+                </h5>
+                
+                {% if recent_activity %}
+                <div class="activity-timeline">
+                    {% for activity in recent_activity %}
+                    <div class="activity-item d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="activity-icon bg-{{ 'danger' if activity.type == 'favorite' else 'warning' if activity.type == 'watchlist' else 'info' }} rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-{{ 'heart' if activity.type == 'favorite' else 'bookmark' if activity.type == 'watchlist' else 'star' }} text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if activity.type == 'favorite' %}
+                                    Added to Favorites
+                                    {% elif activity.type == 'watchlist' %}
+                                    Added to Watchlist
+                                    {% else %}
+                                    Rated a Movie
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ activity.created_at[:10] }}
+                                </small>
+                            </div>
+                            <p class="mb-1">{{ activity.title }}</p>
+                            {% if activity.poster_url %}
+                            <img src="{{ activity.poster_url }}" 
+                                 class="rounded" 
+                                 width="50" 
+                                 alt="{{ activity.title }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="#" class="btn btn-outline-light btn-sm">
+                        View All Activity
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-activity display-4 text-muted mb-3"></i>
+                    <p class="text-muted">No recent activity</p>
+                    <a href="{{ url_for('movies') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-film me-1"></i> Browse Movies
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Management -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h5 class="card-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Account Management
+                </h5>
+                <p class="card-text text-muted mb-4">
+                    These actions are permanent and cannot be undone.
+                </p>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-outline-danger" 
+                            onclick="confirmDeactivation()">
+                        <i class="bi bi-power me-2"></i> Deactivate Account
+                    </button>
+                    <button class="btn btn-outline-danger" 
+                            onclick="confirmDelete()">
+                        <i class="bi bi-trash me-2"></i> Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .activity-timeline {
+        position: relative;
+        padding-left: 20px;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .activity-item {
+        position: relative;
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 20px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        border: 2px solid var(--dark-bg);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        const nameInput = document.getElementById('full_name');
+        const emailInput = document.getElementById('email');
+        let isValid = true;
+        
+        // Validate name
+        if (!nameInput.value.trim()) {
+            showError(nameInput, 'Full name is required');
+            isValid = false;
+        } else {
+            clearError(nameInput);
+        }
+        
+        // Validate email
+        const email = emailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!email) {
+            showError(emailInput, 'Email is required');
+            isValid = false;
+        } else if (!emailRegex.test(email)) {
+            showError(emailInput, 'Please enter a valid email address');
+            isValid = false;
+        } else {
+            clearError(emailInput);
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            showNotification('Please fix the errors in the form', 'warning');
+        }
+    });
+    
+    function showError(input, message) {
+        input.classList.add('is-invalid');
+        let feedback = input.nextElementSibling;
+        
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            input.parentNode.appendChild(feedback);
+        }
+        
+        feedback.textContent = message;
+        feedback.style.display = 'block';
+    }
+    
+    function clearError(input) {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+            feedback.style.display = 'none';
+        }
+    }
+    
+    // Account management actions
+    function confirmDeactivation() {
+        if (confirm('Are you sure you want to deactivate your account? You can reactivate it by logging in again.')) {
+            // Call deactivation API
+            fetch('/api/deactivate_account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Account deactivated successfully', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/logout';
+                    }, 2000);
+                } else {
+                    showNotification(data.message || 'Deactivation failed', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred', 'danger');
+            });
+        }
+    }
+    
+    function confirmDelete() {
+        const email = prompt('Please type your email to confirm account deletion:');
+        
+        if (email === '{{ user.email }}') {
+            if (confirm('⚠️ WARNING: This will permanently delete your account and all data. This action cannot be undone. Are you sure?')) {
+                // Call delete API
+                fetch('/api/delete_account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Account deleted successfully', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    } else {
+                        showNotification(data.message || 'Deletion failed', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred', 'danger');
+                });
+            }
+        } else if (email !== null) {
+            showNotification('Email does not match', 'danger');
+        }
+    }
+    
+    // Character counter for bio
+    const bioInput = document.getElementById('bio');
+    if (bioInput) {
+        const charCount = document.createElement('div');
+        charCount.className = 'form-text text-end';
+        charCount.id = 'bio-char-count';
+        bioInput.parentNode.appendChild(charCount);
+        
+        function updateCharCount() {
+            const length = bioInput.value.length;
+            charCount.textContent = `${length}/500 characters`;
+            
+            if (length > 500) {
+                charCount.classList.add('text-danger');
+            } else if (length > 400) {
+                charCount.classList.add('text-warning');
+            } else {
+                charCount.classList.remove('text-danger', 'text-w

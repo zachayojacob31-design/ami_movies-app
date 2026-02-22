@@ -1,0 +1,601 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }} - Ami Movies{% endblock %}
+
+{% block content %}
+<!-- Movie Header -->
+<div class="row mb-5">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('movies') }}">Movies</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ movie.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Movie Poster & Actions -->
+    <div class="col-lg-4 mb-5 mb-lg-0">
+        <!-- Movie Poster -->
+        <div class="card mb-4">
+            <img src="{{ movie.poster_url }}" 
+                 class="img-fluid rounded movie-detail-poster" 
+                 alt="{{ movie.title }}"
+                 onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-lightning-charge text-warning me-2"></i> Quick Actions
+                </h5>
+                <div class="d-grid gap-3">
+                    <!-- Favorite Button -->
+                    <button class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %} btn-lg toggle-preference"
+                            data-movie-id="{{ movie.id }}" 
+                            data-type="favorite">
+                        <i class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %} me-2"></i>
+                        {% if is_favorite %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                    </button>
+                    
+                    <!-- Watchlist Button -->
+                    <button class="btn {% if is_watchlist %}btn-warning{% else %}btn-outline-warning{% endif %} btn-lg toggle-preference"
+                            data-movie-id="{{ movie.id }}" 
+                            data-type="watchlist">
+                        <i class="bi {% if is_watchlist %}bi-bookmark-fill{% else %}bi-bookmark{% endif %} me-2"></i>
+                        {% if is_watchlist %}Remove from Watchlist{% else %}Add to Watchlist{% endif %}
+                    </button>
+                    
+                    <!-- Trailer Button -->
+                    {% if movie.trailer_url %}
+                    <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-play-circle me-2"></i> Watch Trailer
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Share Button -->
+                    <button class="btn btn-outline-light btn-lg" onclick="shareMovie()">
+                        <i class="bi bi-share me-2"></i> Share Movie
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Movie Stats -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-graph-up text-info me-2"></i> Movie Stats
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stats-number">{{ movie.rating }}</div>
+                        <div class="stats-label">Rating</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stats-number">{{ movie.year }}</div>
+                        <div class="stats-label">Year</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-number">{{ movie.duration }}</div>
+                        <div class="stats-label">Duration</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stats-number">{{ rating_stats.total_ratings if rating_stats else '0' }}</div>
+                        <div class="stats-label">Reviews</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Movie Details -->
+    <div class="col-lg-8">
+        <!-- Movie Title & Rating -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="card-title display-5 fw-bold">{{ movie.title }}</h1>
+                    <div class="rating-display">
+                        <span class="badge bg-danger display-6 px-3 py-2">
+                            ★ {{ movie.rating }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Movie Metadata -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <span class="text-muted">
+                        <i class="bi bi-calendar me-1"></i> {{ movie.year }}
+                    </span>
+                    <span class="text-muted">
+                        <i class="bi bi-clock me-1"></i> {{ movie.duration }}
+                    </span>
+                    <span class="text-muted">
+                        <i class="bi bi-translate me-1"></i> {{ movie.language|default('English') }}
+                    </span>
+                    {% if movie.box_office %}
+                    <span class="text-muted">
+                        <i class="bi bi-currency-dollar me-1"></i> {{ movie.box_office }}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Genres -->
+                <div class="mb-4">
+                    {% for genre in movie.genre.split(', ') %}
+                    <span class="badge bg-primary me-1 mb-1">{{ genre }}</span>
+                    {% endfor %}
+                </div>
+                
+                <!-- Director & Cast -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-person-video me-2"></i> Director
+                        </h6>
+                        <p class="mb-0">{{ movie.director }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-people me-2"></i> Cast
+                        </h6>
+                        <p class="mb-0">{{ movie.cast }}</p>
+                    </div>
+                </div>
+                
+                <!-- Synopsis -->
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-card-text me-2"></i> Synopsis
+                    </h5>
+                    <p class="lead">{{ movie.plot }}</p>
+                </div>
+                
+                <!-- Additional Info -->
+                {% if movie.awards or movie.country %}
+                <div class="row">
+                    {% if movie.awards %}
+                    <div class="col-md-6 mb-3">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-award me-2"></i> Awards
+                        </h6>
+                        <p class="mb-0">{{ movie.awards }}</p>
+                    </div>
+                    {% endif %}
+                    {% if movie.country %}
+                    <div class="col-md-6 mb-3">
+                        <h6 class="fw-bold mb-2">
+                            <i class="bi bi-globe me-2"></i> Country
+                        </h6>
+                        <p class="mb-0">{{ movie.country }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- User Rating Section -->
+        {% if session.user_id %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-star-fill text-warning me-2"></i> Your Rating
+                </h5>
+                
+                {% if user_rating %}
+                <!-- Edit Rating -->
+                <div class="alert alert-info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Your rating: {{ user_rating.rating }}/10</strong>
+                            {% if user_rating.review %}
+                            <p class="mb-0 mt-1">{{ user_rating.review }}</p>
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-sm btn-outline-light" 
+                                onclick="showRatingForm()">
+                            Edit Rating
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Rating Form (Hidden by default) -->
+                <div id="rating-form" {% if not user_rating %}style="display: none;"{% endif %}>
+                    <form id="submit-rating-form">
+                        <div class="mb-3">
+                            <label class="form-label">Your Rating</label>
+                            <div class="star-rating mb-2" id="star-rating">
+                                {% for i in range(1, 11) %}
+                                <i class="bi bi-star star" 
+                                   data-rating="{{ i }}"
+                                   onclick="setRating({{ i }})"></i>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" id="rating-value" 
+                                   value="{{ user_rating.rating if user_rating else '0' }}">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Click stars to rate</small>
+                                <span id="rating-display" class="fw-bold">
+                                    {% if user_rating %}{{ user_rating.rating }}/10{% else %}0/10{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="review" class="form-label">Your Review (Optional)</label>
+                            <textarea class="form-control" id="review" name="review" 
+                                      rows="3" placeholder="Share your thoughts about this movie...">
+                                {{ user_rating.review if user_rating else '' }}
+                            </textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i> 
+                                {% if user_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                            </button>
+                            {% if user_rating %}
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="deleteRating()">
+                                <i class="bi bi-trash me-2"></i> Delete Rating
+                            </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-outline-light ms-auto" 
+                                    onclick="hideRatingForm()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Show Rating Form Button -->
+                {% if not user_rating %}
+                <button class="btn btn-outline-warning w-100" onclick="showRatingForm()">
+                    <i class="bi bi-star me-2"></i> Rate this Movie
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Ratings Distribution -->
+        {% if rating_stats and rating_stats.total_ratings > 0 %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-bar-chart me-2"></i> Ratings Distribution
+                </h5>
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="display-4 fw-bold text-primary">
+                            {{ "%.1f"|format(rating_stats.avg_rating|float) }}
+                        </div>
+                        <div class="rating-stars">
+                            {% for i in range(5) %}
+                            {% if i < (rating_stats.avg_rating|float)//2 %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                            <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted small">
+                            {{ rating_stats.total_ratings }} rating{{ 's' if rating_stats.total_ratings > 1 else '' }}
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        {% for i in range(5, 0, -1) %}
+                        {% set count = rating_stats['five_star' if i == 5 else 'four_star' if i == 4 else 'three_star' if i == 3 else 'two_star' if i == 2 else 'one_star'] %}
+                        {% set percentage = (count / rating_stats.total_ratings * 100) if rating_stats.total_ratings > 0 else 0 %}
+                        <div class="row align-items-center mb-2">
+                            <div class="col-2 text-end">
+                                <span class="text-muted">{{ i }}★</span>
+                            </div>
+                            <div class="col-8">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" 
+                                         style="width: {{ percentage }}%"></div>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <small class="text-muted">{{ "%.1f"|format(percentage) }}%</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Reviews -->
+        {% if recent_reviews %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-chat-left-text me-2"></i> Recent Reviews
+                </h5>
+                <div class="reviews-list">
+                    {% for review in recent_reviews %}
+                    <div class="review-item mb-4 pb-3 border-bottom">
+                        <div class="d-flex mb-2">
+                            {% if review.avatar_url %}
+                            <img src="{{ review.avatar_url }}" 
+                                 class="rounded-circle me-2" 
+                                 width="40" height="40" 
+                                 alt="{{ review.full_name }}">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ review.full_name }}</h6>
+                                <div class="d-flex align-items-center">
+                                    <div class="rating-stars small me-2">
+                                        {% for i in range(5) %}
+                                        {% if i < review.rating//2 %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        {% else %}
+                                        <i class="bi bi-star text-warning"></i>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <small class="text-muted">{{ review.rating }}/10</small>
+                                </div>
+                            </div>
+                            <small class="text-muted ms-auto">
+                                {{ review.created_at[:10] }}
+                            </small>
+                        </div>
+                        {% if review.review %}
+                        <p class="mb-0">{{ review.review }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if rating_stats and rating_stats.total_ratings > 5 %}
+                <div class="text-center mt-3">
+                    <a href="#" class="btn btn-outline-light btn-sm">
+                        View All Reviews ({{ rating_stats.total_ratings }})
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Similar Movies -->
+{% if similar_movies %}
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="fw-bold mb-4">
+            <i class="bi bi-collection-play me-2"></i> Similar Movies
+        </h3>
+        <div class="row">
+            {% for movie in similar_movies[:4] %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    <img src="{{ movie.poster_url }}" 
+                         class="card-img-top" 
+                         alt="{{ movie.title }}"
+                         style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ movie.title }}</h6>
+                        <p class="card-text small text-muted mb-2">
+                            {{ movie.year }} • {{ movie.genre.split(', ')[0] }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary">★ {{ movie.rating }}</span>
+                            <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" 
+                               class="btn btn-sm btn-outline-light">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .movie-detail-poster {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    .rating-display .badge {
+        font-size: 1.5rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .star-rating {
+        font-size: 2rem;
+        color: #ddd;
+        cursor: pointer;
+    }
+    
+    .star-rating .star:hover,
+    .star-rating .star:hover ~ .star {
+        color: #ffc107;
+    }
+    
+    .star-rating .star.active {
+        color: #ffc107;
+    }
+    
+    .review-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    .progress {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentRating = {{ user_rating.rating if user_rating else 0 }};
+    
+    // Star rating functionality
+    function setRating(rating) {
+        currentRating = rating;
+        document.getElementById('rating-value').value = rating;
+        document.getElementById('rating-display').textContent = rating + '/10';
+        
+        // Update star display
+        const stars = document.querySelectorAll('.star-rating .star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active', 'bi-star-fill');
+                star.classList.remove('bi-star');
+            } else {
+                star.classList.remove('active', 'bi-star-fill');
+                star.classList.add('bi-star');
+            }
+        });
+    }
+    
+    // Initialize stars if user has rating
+    {% if user_rating %}
+    setRating({{ user_rating.rating }});
+    {% endif %}
+    
+    // Show/hide rating form
+    function showRatingForm() {
+        document.getElementById('rating-form').style.display = 'block';
+        {% if not user_rating %}
+        document.querySelector('#rating-form button[type="button"]').style.display = 'none';
+        {% endif %}
+    }
+    
+    function hideRatingForm() {
+        document.getElementById('rating-form').style.display = 'none';
+    }
+    
+    // Submit rating
+    document.getElementById('submit-rating-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const rating = formData.get('rating');
+        const review = formData.get('review');
+        
+        if (rating === '0') {
+            showNotification('Please select a rating', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/submit_rating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    movie_id: {{ movie.id }},
+                    rating: rating,
+                    review: review
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('Rating submitted successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                throw new Error('Submission failed');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'danger');
+        }
+    });
+    
+    // Delete rating
+    async function deleteRating() {
+        if (!confirm('Are you sure you want to delete your rating?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/delete_rating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    movie_id: {{ movie.id }}
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('Rating deleted successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                throw new Error('Deletion failed');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'danger');
+        }
+    }
+    
+    // Share movie
+    function shareMovie() {
+        const title = '{{ movie.title }}';
+        const url = window.location.href;
+        const text = `Check out "${title}" on Ami Movies!`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                text: text,
+                url: url
+            });
+        } else {
+            // Fallback: Copy to clipboard
+            navigator.clipboard.writeText(`${text}\n${url}`).then(() => {
+                showNotification('Link copied to clipboard!', 'success');
+            });
+        }
+    }
+    
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
